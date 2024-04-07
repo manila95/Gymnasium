@@ -19,6 +19,7 @@ UP = 3
 
 MAPS = {
     "4x4": ["SFFF", "FHFH", "FFFH", "HFFG"],
+    "4x4x2": ["GFFF", "FHFH", "FFFH", "HFFS"],
     "8x8": [
         "SFFFFFFF",
         "FFFFFFFF",
@@ -220,6 +221,7 @@ class FrozenLakeEnv(Env):
         render_mode: Optional[str] = None,
         desc=None,
         map_name="4x4",
+        hole_reward=0,
         is_slippery=True,
     ):
         if desc is None and map_name is None:
@@ -228,7 +230,8 @@ class FrozenLakeEnv(Env):
             desc = MAPS[map_name]
         self.desc = desc = np.asarray(desc, dtype="c")
         self.nrow, self.ncol = nrow, ncol = desc.shape
-        self.reward_range = (0, 1)
+        self.reward_range = (hole_reward, 1)
+        self.hole_reward = hole_reward
 
         nA = 4
         nS = nrow * ncol
@@ -257,6 +260,7 @@ class FrozenLakeEnv(Env):
             newstate = to_s(newrow, newcol)
             newletter = desc[newrow, newcol]
             terminated = bytes(newletter) in b"GH"
+            reward = float(newletter == b"H") * self.hole_reward
             reward = float(newletter == b"G")
             return newstate, reward, terminated
 
